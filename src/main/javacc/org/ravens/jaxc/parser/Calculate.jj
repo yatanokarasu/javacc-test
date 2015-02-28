@@ -1,0 +1,137 @@
+options {
+    STATIC = false;
+    //DEBUG_PARSER = true;
+}
+
+
+PARSER_BEGIN(CalculateParser)
+package org.ravens.jaxc.parser;
+
+public class CalculateParser{}
+
+PARSER_END(CalculateParser)
+
+
+< * > SKIP : {
+
+        " "
+    |   "\t"
+    |   "\r"
+    |   "\n"
+}
+
+
+< * > TOKEN : {
+
+        < PLUS:         "+" >
+    |   < MINUS:        "-" >
+    |   < MULTIPLY:     "*" >
+    |   < DIVIDE:       "/" >
+    |   < LPAREN:       "(" >
+    |   < RPAREN:       ")" >
+    |   < SEMICOLON:    ";" >
+
+}
+
+
+< * > TOKEN : {
+
+    < #DIGIT:  [ "0"-"9" ] >
+  }
+
+
+< * > TOKEN : {
+
+    < NUMBER:   ( <MINUS> )? [ "1"-"9" ] ( < DIGIT > )* >
+}
+
+
+int calc() :{
+    int result;}
+{
+    result = expression()
+
+    < SEMICOLON >
+    
+    {
+        return result;    }}
+
+
+int expression() :{
+    Token token;
+    
+    int leftHandSide;
+    int rightHandSide;}
+{
+    leftHandSide = term()
+
+    (
+        ( token = < PLUS > | token = < MINUS > )
+        rightHandSide = term()
+
+        {
+            switch (token.image) {
+            case "+":
+                leftHandSide += rightHandSide;
+
+                break;
+            case "-":
+                leftHandSide -= rightHandSide;
+                break;
+            default:
+                break;
+            }
+          
+        }
+    )*
+
+    {
+        return leftHandSide;    }}
+
+
+int term() :{
+    Token token;
+    
+    int leftHandSide;
+    int rightHandSide;}
+{
+    leftHandSide = factor()
+
+    (
+        ( token = < MULTIPLY > | token = < DIVIDE > )
+        rightHandSide = factor()
+
+        {
+            switch (token.image) {
+            case "*":
+                leftHandSide *= rightHandSide;
+
+                break;
+            case "/":
+                leftHandSide /= rightHandSide;
+                break;
+            default:
+                break;
+            }
+          
+        }
+        
+    )*
+
+    {        return leftHandSide;    }    }
+
+
+int factor() throws NumberFormatException :{
+    Token token;
+    int result;}
+{
+    (
+            token = < NUMBER > {
+                return Integer.parseInt(token.image);            }
+        |
+            < LPAREN >	        result = expression()
+            < RPAREN >
+
+            {
+                return result;            }    )}
+
